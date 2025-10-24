@@ -1,0 +1,37 @@
+---
+title: "cucumber"
+format: html
+---
+
+# Overview
+This is a test of execution of cucumber in a quarto document
+
+# Setup
+```{r}
+library(cucumber)
+```
+
+# The feature file
+```{.gherkin}
+{{< include tests/acceptance/sum.feature >}}
+```
+
+# The steps
+```{r}
+given("I have {int}", function(int, context) {
+  context$numbers <- c(context$numbers, int)
+})
+
+when("I add them", function(context) {
+  context$result <- sum(context$numbers)
+})
+
+then("I get {int}", function(int, context) {
+  expect_equal(context$result, int)
+})
+```
+
+# The execution
+```{r}
+cucumber::test()
+```

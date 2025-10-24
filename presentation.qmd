@@ -1,0 +1,165 @@
+---
+title: "R library validation using ATDD"
+author: "Brian Repko"
+format: 
+  revealjs:
+    theme: default
+    slide-number: c/t
+    footer: "R/Pharma 2025"
+editor: source
+---
+
+## Why this talk?
+
+- R/Pharma 2023 in Chicago - R Validation Hub work
+- How to write / share tests of the `pharmaverse` packages
+- Limited discussion on solutions - lots of JSON
+![](images/r-pharma-2023.jpg){.absolute top=400 left=50 width="400"}
+![](images/r-validation-hub.png){.absolute top=400 left=550 width="400"}
+
+## Why am I talking?
+
+- Background is software / data engineer / bioinformatician
+- Last 15 years in biomedical research, clinical trials, and RWD
+- Last 10 years primarily in R
+- I was part of the JBehave team back in the day
+- Lots of presentations and actual training curriculum on this
+![](images/jbehave-logo.png){.absolute top=450 left=30 width="200"}
+![](images/sbe-book.jpg){.absolute top=520 left=50 width="150"}
+![](images/talk-1.png){.absolute top=470 left=250 width="200"}
+![](images/talk-2.png){.absolute top=420 left=470 width="200"}
+![](images/talk-3.png){.absolute top=470 left=690 width="200"}
+
+## What are we talking about?{.smaller}
+
+- System-level vs Component-level (Unit Testing)
+  - Here "system" can mean set of R packages / scripts
+- Focus on non-code / plain text to enable collaboration
+- Lots of names for this practice (requirements or/and tests)
+  - "Customer Tests" (from XP)
+  - **Behavior-Driven Development (BDD)**
+  - **Acceptance-Test-Driven Development (ATDD)**
+  - Storytest-Driven Development (SDD)
+  - Example-Driven Development (EDD)
+  - **Specification By Example (SBE)**
+![](images/atdd-tdd.png){.absolute top=60 left=750 width="300" height="300"}
+
+## What does this look like?
+
+- There are lots of solutions / flavors
+- [Fit](http://fit.c2.com) / [FitNesse](https://fitnesse.org) (Ward Cunningham) - table-based
+- [Concordian](https://concordion.org/index.html) - enhanced markdown-based
+- [Robot Framework](https://robotframework.org) - tab-delimited keyword based
+- Given-When-Then ([Gherkin language](https://cucumber.io/docs/gherkin/))
+  - [JBehave](https://jbehave.org) (Dan North, Liz Keogh)
+  - [Cucumber](https://cucumber.io) (Aslak Hellesøy) / [SpecFlow](https://shiftsync.tricentis.com/p/shift-to-shiftsync) (Gáspár Nagy)
+- [Gauge](https://gauge.org/index.html) (ThoughtWorks) - enhanced markdown-based
+
+::: {.notes}
+These are in date order
+
+Many of these work in multiple programming languages
+:::
+
+## How does this work?
+
+- Features are plain-text files
+  - Either Gherkin, Markdown, or other
+- Steps are functions together with a text-pattern
+  - Parameters as placeholders in pattern  - like `{glue}` string
+  - May be placed into categories - Given/When/Then
+  - Steps are either registered or discovered (via annotation)
+- Parse features into step calls via pattern matching
+- Step function call returns are collected / handled / reported
+
+:::{.notes}
+For GWT - Given is setup, When is event, Then is test or expectation
+
+Beyond steps, can also have Before and After hooks
+
+Gherkin also has ways to not repeat yourself (tables / outlines)
+:::
+
+## How does this work? {.smaller}
+
+:::{.callout-note}
+This is from the `{cucumber}` R package example - next slide!
+:::
+
+:::: {.columns}
+
+::: {.column width="50%"}
+Features
+```
+{{< include tests/acceptance/sum.feature >}}
+```
+:::
+
+::: {.column width="50%"}
+Steps
+```r
+given("I have {int}", function(int, context) {
+  context$numbers <- c(context$numbers, int)
+})
+
+when("I add them", function(context) {
+  context$result <- sum(context$numbers)
+})
+
+then("I get {int}", function(int, context) {
+  expect_equal(context$result, int)
+})
+```
+:::
+
+![](images/quarto-cucumber-result.png){.absolute top=500 left=300 height="200"}
+::::
+
+## What about for R?
+
+- [`{cucumber}`](https://jakubsobolewski.com/cucumber/index.html) package from Jakub Sobolewski
+  - Last major release (version 2.0.0) was Apr 4, 2025
+  - Current version is 2.1.1
+- Gherkin-based `.feature` files
+- Steps are registered via `given`, `when`, `then` functions
+- Execution converted to `testthat` code (reported this way)
+- Features and steps are typically under `tests/acceptance`
+![](images/cucumberlogo.png){.absolute top=20 left=900 width="150"}
+
+## Opportunity {.smaller}
+
+- Ability to collect and run tests on all of `pharmaverse`
+  - Potential to simulate clinical trial events
+- Potentially extend to [R-multiverse](https://r-multiverse.org) (ROpenSci initiative)
+- Shiny app, web app, or API testing
+  - See [Jakob's website](https://jakubsobolewski.com) for details on testing Shiny apps with `{cucumber}`
+  - Step functions could use web driver like [`{chromote}`](https://rstudio.github.io/chromote/)
+- There exists experience with this practice (though less in pharma)
+- For Gherkin - tooling already exists
+  - Markdown code block styling (eg. ` ```gherkin`)
+  - Plugins for various IDEs
+
+## Challenges {.smaller}
+
+- How best to integrate quarto?
+  - Reporting format? Execution engine? Both?
+- Do something like Gauge or leverage Cucumber?
+- Potentially extend `{cucumber}`
+  - If we wanted to go to function annotation...
+    - `{plumber2}` has added `@then` annotation
+    - Would need to add function annotation during `onLoad`
+    - Could store text-pattern in `Rmd` or other file
+  - Quarto as reporting output
+- Potentially extend `{knitr}` or Quarto
+- Dealing with packages used by framework vs system under test (`{callr}`?)
+- Needs data storage / comparison (`{diffdf}`?)
+
+## Next Steps
+
+- Discuss with R Validation Hub
+- Work through various design decisions / options
+- ISC Proposal for Apr 2026
+- Get in touch!
+  - {{< iconify fa7-solid:envelope >}} <brian.repko@learnthinkcode.com>
+  - {{< iconify fa7-brands:mastodon >}} <https://hachyderm.io/@brianrepko>
+  - {{< iconify fa7-brands:linkedin >}} <https://www.linkedin.com/in/brianrepko/>
